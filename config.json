@@ -2,16 +2,14 @@
 	"stepper_controller": 
 	{
 		"microsteps": 16,
-		"motors":{
-			"x":0,
-			"y":2},
-		"vector":["x","y"],
+		"motors":[2,0],
+		"axes":["x","y"],
 		"limits":{
 			"x":[0,25],
 			"y":[0,25]},
-		"home": {"x":25,"y":25},
-		"home_direction": {"x":1,"y":1},
-		"steps_per_mm":{"x":983.2, "y":983.2},
+		"home": [25,25],
+		"home_direction": [1,1],
+		"steps_per_mm":[983.2,983.2],
 		"max_velocity":55	
 	},
 	"stepper_controller_api":
