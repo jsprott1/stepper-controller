@@ -5,16 +5,19 @@
 		"motors":[2,0],
 		"axes":["x","y"],
 		"limits":{
-			"x":[0,25],
-			"y":[0,25]},
-		"home": [25,25],
+			"x":[0,25.3],
+			"y":[0,25.26]},
+		"home": [25.3,25.26],
 		"home_direction": [1,1],
-		"steps_per_mm":[983.2,983.2],
-		"max_velocity":55	
+		"steps_per_mm":{"x":[998.6,998.6],"y":[998.6,998.6]},
+		"max_current":[48,48],
+		"max_velocity":25,
+		"min_velocity":3
 	},
 	"stepper_controller_api":
 	{
 		"server_port":5001,
+		"flask_listen_ip":"132.187.38.38",
 		"restrict_network_partner":0,
 		"allowed_network_partner":"132.187.38.190",
 		"route": "/stepper"
