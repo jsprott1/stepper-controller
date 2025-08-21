@@ -8,19 +8,23 @@ import numpy as np
 class Stage:
     microStepDict = {1: 0, 2: 1, 4: 2, 8: 3, 16: 4, 32: 5, 64: 6, 128: 7, 256: 8}
     
-    def __init__(self, config):
+    def __init__(self, config, initial_pos = None):
         self.config = config
         self.axes = self.config["axes"]
         self.motors = self.config["motors"]
         self.axis_bounds = self.config["limits"]
         self.microsteps = self.config["microsteps"]
-        self.steps_per_mm = self.config["steps_per_mm"]# In format of {axis:[-,+]}
-        self.steps_per_mm.update((x, np.array(y)*self.microsteps) for x, y in self.steps_per_mm.items())
+        self.steps_per_mm = self.config["steps_per_mm"].copy()# In format of {axis:[-,+]}
+        self.steps_per_mm.update((x, [i*self.microsteps for i in y]) for x, y in self.steps_per_mm.items())
         self.max_velocity = min(self.config["max_velocity"] * self.microsteps, 1000)
         self.max_current = self.config["max_current"]
-        self.current_position = np.zeroes(self.axes)
+        if initial_pos is None:
+            self.current_position = np.array(self.config["home"])
+        else:
+            self.current_position = initial_pos
         self.initialize_interface()
         self.initialize_motors()
+
 
         
         
@@ -87,12 +91,12 @@ class Stage:
             raise Exception(f"Axis bounds error. position {position_mm}mm is out of the allowed range for axis {axis}.")
         axis_i = self.axes.index(axis)
         delta = position_mm - self.current_position[axis_i]
-        delta_steps = round(delta * self.steps_per_mm[axis][delta > 0])
+        delta_steps = round(delta * self.steps_per_mm[axis][1 * (delta > 0)])
         self.move_to(axis,delta_steps + self.get_motor_position(axis),velocity)
         if blocking:
             while not self.module.get_axis_parameter(self.module.motors[self.motors[axis_i]].AP.PositionReachedFlag,self.motors[axis_i]):
                 pass
-        self.current_position[axis_i] += delta_steps/self.steps_per_mm[axis][delta > 0]
+        self.current_position[axis_i] += delta_steps/self.steps_per_mm[axis][1 * (delta > 0)]
 
     def move_to_mm_vec(self, pos_mm_vec, velocity=None, blocking=True):
         self.move_to_mm(self.axes[0], pos_mm_vec[0], velocity, False)
@@ -118,8 +122,8 @@ class Stage:
     def close(self):
         self.myInterface.close()
         
-    # Returns distance recorded returning to limit after moving $distance away
-    def calibrate_backlash(self, axis, distance, velocity=None):
+    # Returns (steps back - steps away) / steps away
+    def calibrate_movement(self, axis, distance, velocity=None):
         if velocity == None:
             velocity = 200
         axis_i = self.axes.index(axis)
@@ -128,24 +132,14 @@ class Stage:
         home_dir = self.config["home_direction"][axis_i]
         
         self.home(axis)
+        pos_0 = self.get_motor_position(axis)
         self.move_to_mm(axis, home_pos - distance*home_dir, velocity)
-        initial_pos = self.get_position()[axis_i]
+        pos_1 = self.get_motor_position(axis)
         self.module.rotate(motor, velocity*home_dir)
         while not self.module.get_axis_parameter(self.module.motors[motor].AP.LeftEndstop,motor):
             pass
         self.module.rotate(motor, 0)
-        final_pos = self.get_position()[axis_i]
-        return str(abs(final_pos - initial_pos))
+        pos_2 = self.get_motor_position(axis)
+        return str((pos_2-pos_0)/abs(pos_1-pos_0))
         
         
-
-
-if __name__ == '__main__':
-    
-#     #%% test Stage class
-      stage = Stage()
-      stage.home("y")
-      stage.home("x")
-      stage.moveTo_mm("x",24,120)
-#      stage.moveTo_mm_vec([10,12])
-    
