@@ -3,6 +3,7 @@ import numpy as np
 import json
 from flask import Flask, request, abort
 from stage_firmware import Stage
+from autofocus import focus
 
 class CryoStepperMicroservice:
     def __init__(self):
@@ -26,6 +27,8 @@ class CryoStepperMicroservice:
                 return "reset stepper motors"
             elif "config" in new_data:
                 self.update_config(new_data["config"], new_data["config_data"], new_data["by_factor"])
+            elif "focus" in new_data:
+                return f"best focus value {focus(camera, self.stepper_controller, 100, 1/2, 3, (1000, 1000))}"
             elif self.is_busy:
                 abort(409, description="device busy")
             
