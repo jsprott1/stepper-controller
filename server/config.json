@@ -3,14 +3,15 @@
 	{
 		"microsteps": 16,
 		"motors":[2,0],
-		"axes":["x","y"],
+		"axes":["x","y", "o"],
 		"limits":{
 			"x":[0,25.3],
-			"y":[0,25.26]},
-		"home": [25.3,25.26],
-		"home_direction": [1,1],
-		"steps_per_mm":{"x":[998.6,998.6],"y":[998.6,998.6]},
-		"max_current":[48,48],
+			"y":[0,25.26],
+			"o":[-10000,10000},
+		"home": [25.3,25.26,null],
+		"home_direction": [1,1,null],
+		"steps_per_mm":{"x":[998.6,998.6],"y":[998.6,998.6],"o":[1,1]},
+		"max_current":[48,48,48],
 		"max_velocity":25,
 		"min_velocity":3
 	},
